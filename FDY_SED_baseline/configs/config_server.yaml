@@ -1,0 +1,4 @@
+
+batch_size: [ 2, 2, 4 ] #batch size for each gpu
+batch_size_val: 2
+num_workers: 6
