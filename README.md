@@ -1,21 +1,42 @@
-# Master Thesis Project
+# Master Thesis Title - Optimizing Acoustic Event Detection for Challenging Data and Label Availability
 
-This repository contains the code and experimental setup for a master thesis project focused on sound event detection (SED) using synthetic mixtures and a CRNN-based baseline model.
+# Abstract
+Sound event detection (SED) systems require strongly-labelled audio recordings annotated
+with the onset and offset of every event, yet such labels are costly and slow to produce,
+whereas weakly-labelled and unlabelled audio are comparatively abundant. This thesis
+investigates whether semi-supervised learning (SSL) can exploit this cheap data to offset
+the scarcity of strong labels, and thereby approach the performance of a fully strongly-
+supervised system on synthetic SED data.
 
-The project is organized into two main parts:
+Because no public corpus matched the required sound classes and acoustic conditions,
+three synthetic mixture-generation pipelines were developed, producing single-event, non-
+overlapping multi-event, and overlapping multi-event soundscapes with exact temporal
+annotations. A Frequency Dynamic Convolutional Recurrent Neural Network was trained
+within a Mean Teacher framework across fourteen experiments that systematically varied
+dataset size, label partitioning, class count, and mixture type. The study was complemented
+by three reference systems on a matched overlapping configuration: a supervised strong-
+label baseline, a fine-tuned ATST-SED model initialised from an externally pre-trained
+audio transformer, and an event-to-background ratio (EBR) sweep that evaluated a fixed
+model across test sets of decreasing event prominence.
 
-- Data generation workflow for creating synthetic audio mixtures from isolated events and background noise.
-- A baseline SED pipeline (`FDY_SED_baseline`) configured for weakly/strongly supervised training with a CRNN architecture.
+With respect to guiding question, the results were not matching the expectations. The
+in-domain semi-supervised model reached an event-based macro F1 of 0.358, roughly 63%
+of the supervised baseline (0.571) trained on the same data, and reallocating training data
+from strong labels to unlabelled clips degraded every metric. A source-disjoint evaluation
+protocol further revealed that earlier, higher scores were partly inflated by train-test source
+overlap, establishing a lower but more credible performance ceiling. The EBR sweep
+showed monotonic degradation as events grew quieter, with precise temporal localisation
+lost first and frame-level presence detection most resilient.
 
-## Project overview
-
-The work is centered on generating realistic acoustic mixtures and training a sound event detection system to localize and classify events in 10-second clips. The pipeline includes:
-
-- isolated event loading and filtering
-- background noise sampling
-- synthetic mixture generation with event placement and labeling
-- dataset splitting and label extraction
-- baseline training configuration for a CRNN-based event detector
+In contrast, transferring knowledge from external pre-training proved more effective
+than exploiting in-domain unlabelled data. On the identical configuration, ATST-SED
+raised event-based macro F1 to 0.492, recovering most of the gap to the supervised baseline
+about 86% of its event-based F1 while still using only 40% of the training pool as strong
+labels. Within the regimes studied, in-domain semi-supervised training did not compensate
+for limited strong supervision, whereas external pre-training did improve it. Together these
+findings delineate where the standard Mean Teacher recipe ceases to help on synthetic
+SED data and identify transfer from large-scale pre-training as the more promising route
+when strong labels are scarce.
 
 ## Repository structure
 
@@ -40,77 +61,7 @@ The work is centered on generating realistic acoustic mixtures and training a so
 └── .gitignore
 ```
 
-## Data generation
-
-The `Data_generation/` folder contains the scripts used to generate synthetic mixtures and dataset splits.
-
-### Main scripts
-
-- `1_CSV_filtering&copying_files.py`
-  - Filters and organizes CSV metadata and associated audio files.
-
-- `2.1_mixture_generation.py`
-  - Generates audio mixtures by combining isolated event clips with background noise while creating metadata labels.
-
-- `2.2_mixture_gen_nonOverlapp_multi_events.py`
-  - Generates additional mixtures with multi-event, non-overlapping patterns.
-
-- `3_split_generation.py`
-  - Creates train/validation/test dataset splits.
-
-- `extract_single_labels.py`
-  - Extracts single-label information from generated data.
-
-These scripts assume local dataset directories and audio files on disk, and some paths are hard-coded to machine-specific locations.
-
-## Baseline model
-
-The `FDY_SED_baseline/` directory contains the training configuration for a CRNN-based sound event detector. The configuration file (`FDY_SED_baseline/configs/config.yaml`) defines:
-
-- audio feature extraction parameters
-- training hyperparameters
-- CRNN architecture settings
-- dataset paths for weak, unlabeled, test, and synthetic data
-- normalization and augmentation options
-
-The configuration is tuned for a multi-class SED setup and includes augmentation strategies such as mixup, filtering, frequency masking, and noise injection.
-
-## Prerequisites
-
-This project is built around Python and audio processing libraries. Typical dependencies include:
-
-- Python 3.9+
-- PyTorch
-- Librosa
-- SoundFile
-- NumPy
-- tqdm
-- PyYAML
-
-## Setup
-
-1. Clone the repository.
-2. Install the required dependencies.
-3. Update dataset paths in `FDY_SED_baseline/configs/config.yaml` to match your local environment.
-4. Prepare your isolated events, background audio, and label files.
-5. Run the generation scripts in `Data_generation/` as needed.
-6. Train and evaluate the baseline model using the configured pipeline in `FDY_SED_baseline`.
-
-## Notes
-
-- The dataset paths in the project configuration currently point to local `/home/...` directories.
-- The repository includes both the thesis report and presentation PDF files for reference.
-- This is a research-oriented codebase, so path and environment configuration may need adjustment depending on the machine or dataset layout used.
-
 ## Related files
 
 - `Main_Master_Thesis_Report.pdf` — thesis report
 - `Master_Thesis_Presentation .pdf` — presentation slides
-
-## License
-
-This repository does not currently declare a license file. Please check with the repository owner before reusing the code or materials for publication or distribution.
-
-## Contact
-
-For questions about the project or repository structure, please contact the repository owner or refer to the thesis materials included in this project.
